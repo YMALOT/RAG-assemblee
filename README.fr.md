@@ -103,9 +103,27 @@ redeviendrait probablement intéressant avec une diversification thématique
 ## Repository
 
 ```
-ingest.py            chunk.py             embed_and_index.py
-retrieve.py          retrieve_reranked.py retrieve_hybrid.py
-generate.py
-search_corpus.py     get_chunk.py         inspect_chunks.py    annotate.py
-run_eval.py          eval/questions.jsonl
+.
+├── pre_process/
+│   ├── ingest.py
+│   ├── sort.py
+│   ├── chunk.py
+│   ├── embed_and_index.py
+│   └── inspect_chunks.py
+├── generation/
+│   ├── retrieve.py
+│   ├── retrieve_reranked.py
+│   ├── retrieve_hybrid.py
+│   └── generate.py
+├── evaluation/
+│   ├── eval.py
+│   ├── search_corpus.py
+│   ├── get_chunk.py
+│   ├── questions.jsonl
+│   └── results/
+│       ├── eval_plain.txt
+│       ├── eval_reranked.txt
+│       └── eval_hybrid.txt
+├── annotate.py
+└── run_eval.py
 ```

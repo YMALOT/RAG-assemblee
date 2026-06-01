@@ -88,7 +88,7 @@ the law text itself, which is the next planned extension.
   document type with article-level chunking. Expected to lift synthesis
   questions and revive hybrid retrieval.
 - Generation evaluation: faithfulness and answer correctness against the
-  hand-written `expected_answer` field (RAGAS or LLM-as-judge).
+  hand-written `expected_answer` field (RAGAS or LLM-as-judge) -> done.
 - Chunking ablation: target size and overlap as measured hyperparameters.
 
 ## Repository

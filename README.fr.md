@@ -96,7 +96,7 @@ redeviendrait probablement intéressant avec une diversification thématique
   attendu sur les questions de synthèse et possible réactivation de
   l'hybride.
 - Évaluation de la génération : fidélité et exactitude des réponses contre
-  les `expected_answer` annotés (RAGAS ou LLM-as-judge).
+  les `expected_answer` annotés (RAGAS ou LLM-as-judge) -> fait.
 - Étude d'ablation du chunking : taille cible et chevauchement comme
   hyperparamètres mesurés.
 

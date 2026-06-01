@@ -30,11 +30,14 @@ import argparse
 
 from sentence_transformers import CrossEncoder
 
-from .retrieve import Retriever, Hit  # reuse the dense retriever and Hit type
+try:
+    from generation.retrieve import Retriever, Hit
+except ImportError:
+    from retrieve import Retriever, Hit  # type: ignore[no-redef]  # direct script execution
 
 # Multilingual cross-encoder. bge-reranker-base is widely used, supports French,
 # and is small enough to run on CPU (~280M params).
-RERANKER_MODEL = "BAAI/bge-reranker-base"
+RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
 # How many candidates to ask the dense retriever for, before reranking.
 # 20 is a common default: wide enough to recover good chunks the bi-encoder

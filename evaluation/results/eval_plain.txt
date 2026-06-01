@@ -1,9 +1,9 @@
 Evaluating 17 questions (k=5)
 ======================================================================
-[q01] synthesis    recall@5=0.33  RR=1.00  top=0.880  Quelles mesures sont prises pour lutter contre le 
+[q01] synthesis    recall@5=0.29  RR=1.00  top=0.880  Quelles mesures sont prises pour lutter contre le 
 [q02] synthesis    recall@5=0.25  RR=0.50  top=0.876  Avec la nouvelle loi, qui mettra en œuvre les mesu
 [q03] synthesis    recall@5=0.43  RR=1.00  top=0.870  La loi cible-t-elle plutôt le harcèlement entre él
-[q04] synthesis    recall@5=0.33  RR=1.00  top=0.811  Quelles mesures ont été mises en place dans d’autr
+[q04] synthesis    recall@5=0.25  RR=1.00  top=0.811  Quelles mesures ont été mises en place dans d’autr
 [q05] synthesis    recall@5=0.57  RR=1.00  top=0.850  Est-ce une loi plutôt orientée sur la répression o
 [q06] factual      recall@5=0.67  RR=1.00  top=0.849  Quelles sont les peines actuellement prévues, pour
 [q07] conceptual   recall@5=0.50  RR=0.50  top=0.876  Comment définir le harcèlement scolaire ?
@@ -20,17 +20,17 @@ Evaluating 17 questions (k=5)
 
 ======================================================================
 In-corpus questions: 14
-  mean recall@5 : 0.460
+  mean recall@5 : 0.451
   hit@5         : 0.929  (fraction with >=1 relevant chunk in top 5)
   MRR            : 0.750
   mean top score : 0.863
 
 Out-of-corpus questions: 3
   mean top score : 0.849
-  score gap (in - out): 0.014  (larger = easier to detect out-of-corpus by score)
+  score gap (in - out): 0.015  (larger = easier to detect out-of-corpus by score)
 
 Mean recall@5 by question type:
   conceptual     0.583  (n=2)
   disagreement   0.633  (n=2)
   factual        0.472  (n=4)
-  synthesis      0.353  (n=6)
+  synthesis      0.331  (n=6)

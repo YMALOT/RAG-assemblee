@@ -19,7 +19,6 @@ Usage:
 
 from __future__ import annotations
 
-import argparse
 import json
 from pathlib import Path
 from statistics import mean
@@ -101,28 +100,3 @@ def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool)
         print("\nMean recall@{} by question type:".format(k))
         for t, vals in sorted(by_type.items()):
             print(f"  {t:14} {mean(vals):.3f}  (n={len(vals)})")
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser(description="Evaluate retrieval quality.")
-    ap.add_argument("--questions", default=QUESTIONS_PATH)
-    ap.add_argument("--k", type=int, default=5)
-    ap.add_argument("--no-procedural", action="store_true",
-                    help="exclude procedural chunks during retrieval")
-    ap.add_argument("--rerank", action="store_true",
-                    help="use cross-encoder reranking on top of dense retrieval")
-    args = ap.parse_args()
-
-    questions = load_questions(args.questions)
-    print(f"Evaluating {len(questions)} questions (k={args.k})\n" + "=" * 70)
-    if args.rerank:
-        from generation import RerankedRetriever
-        retriever = RerankedRetriever()
-    else:
-        from generation import Retriever
-        retriever = Retriever()
-    evaluate(retriever, questions, k=args.k, exclude_procedural=args.no_procedural)
-
-
-if __name__ == "__main__":
-    main()

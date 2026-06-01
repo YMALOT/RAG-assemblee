@@ -24,7 +24,10 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from .retrieve import Retriever, Hit
+try:
+    from generation.retrieve import Retriever, Hit
+except ImportError:
+    from retrieve import Retriever, Hit  # type: ignore[no-redef]  # direct script execution
 
 # --- Backend configuration (override via env vars to switch to a remote API) -
 load_dotenv()

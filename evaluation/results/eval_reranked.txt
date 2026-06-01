@@ -1,36 +1,36 @@
 Evaluating 17 questions (k=5)
 ======================================================================
-[q01] synthesis    recall@5=0.22  RR=1.00  top=0.760  Quelles mesures sont prises pour lutter contre le 
-[q02] synthesis    recall@5=0.12  RR=0.33  top=0.460  Avec la nouvelle loi, qui mettra en œuvre les mesu
-[q03] synthesis    recall@5=0.29  RR=0.25  top=0.309  La loi cible-t-elle plutôt le harcèlement entre él
-[q04] synthesis    recall@5=0.00  RR=0.00  top=0.000  Quelles mesures ont été mises en place dans d’autr
-[q05] synthesis    recall@5=0.43  RR=1.00  top=0.004  Est-ce une loi plutôt orientée sur la répression o
-[q06] factual      recall@5=0.67  RR=0.25  top=0.028  Quelles sont les peines actuellement prévues, pour
-[q07] conceptual   recall@5=0.33  RR=0.50  top=0.982  Comment définir le harcèlement scolaire ?
-[q08] conceptual   recall@5=0.67  RR=1.00  top=0.491  En quoi le harcèlement scolaire se différencie-t-i
-[q09] factual      recall@5=0.44  RR=1.00  top=0.118  Combien d’enfants sont touchés par le harcèlement 
-[q10] disagreement recall@5=0.20  RR=1.00  top=0.539  Qui est en faveur de la loi, qui est contre ?
-[q11] disagreement recall@5=0.33  RR=0.33  top=0.003  Quels sont les arguments des détracteurs de ce tex
-[q12] synthesis    recall@5=0.40  RR=1.00  top=0.000  Qui seraient les personnels à même de faire remont
-[q13] out_of_corpus top=0.027  Pourquoi certains enfants sont-ils harcelés ?
-[q14] factual      recall@5=0.33  RR=0.25  top=0.004  Qu'a dit le ministre Blanquer sur la formation des
-[q15] out_of_corpus top=0.001  Quel est le taux de réussite au bac 2023 ?
-[q16] out_of_corpus top=0.255  Quel était le budget de l’Education Nationale en 2
-[q17] factual      recall@5=0.00  RR=0.00  top=0.000  Combien de décès sont attribués au harcèlement à l
+[q01] synthesis    recall@5=0.43  RR=1.00  top=0.999  Quelles mesures sont prises pour lutter contre le 
+[q02] synthesis    recall@5=0.25  RR=1.00  top=0.959  Avec la nouvelle loi, qui mettra en œuvre les mesu
+[q03] synthesis    recall@5=0.29  RR=0.50  top=0.974  La loi cible-t-elle plutôt le harcèlement entre él
+[q04] synthesis    recall@5=0.25  RR=0.20  top=0.166  Quelles mesures ont été mises en place dans d’autr
+[q05] synthesis    recall@5=0.71  RR=1.00  top=0.231  Est-ce une loi plutôt orientée sur la répression o
+[q06] factual      recall@5=1.00  RR=1.00  top=0.638  Quelles sont les peines actuellement prévues, pour
+[q07] conceptual   recall@5=0.50  RR=1.00  top=0.998  Comment définir le harcèlement scolaire ?
+[q08] conceptual   recall@5=0.67  RR=1.00  top=0.993  En quoi le harcèlement scolaire se différencie-t-i
+[q09] factual      recall@5=0.44  RR=1.00  top=0.999  Combien d’enfants sont touchés par le harcèlement 
+[q10] disagreement recall@5=0.60  RR=1.00  top=0.430  Qui est en faveur de la loi, qui est contre ?
+[q11] disagreement recall@5=0.33  RR=0.50  top=0.254  Quels sont les arguments des détracteurs de ce tex
+[q12] synthesis    recall@5=0.40  RR=0.50  top=0.965  Qui seraient les personnels à même de faire remont
+[q13] out_of_corpus top=0.981  Pourquoi certains enfants sont-ils harcelés ?
+[q14] factual      recall@5=0.67  RR=1.00  top=0.025  Qu'a dit le ministre Blanquer sur la formation des
+[q15] out_of_corpus top=0.000  Quel est le taux de réussite au bac 2023 ?
+[q16] out_of_corpus top=0.060  Quel était le budget de l’Education Nationale en 2
+[q17] factual      recall@5=0.00  RR=0.00  top=0.996  Combien de décès sont attribués au harcèlement à l
 
 ======================================================================
 In-corpus questions: 14
-  mean recall@5 : 0.317
-  hit@5         : 0.857  (fraction with >=1 relevant chunk in top 5)
-  MRR            : 0.565
-  mean top score : 0.264
+  mean recall@5 : 0.467
+  hit@5         : 0.929  (fraction with >=1 relevant chunk in top 5)
+  MRR            : 0.764
+  mean top score : 0.688
 
 Out-of-corpus questions: 3
-  mean top score : 0.094
-  score gap (in - out): 0.170  (larger = easier to detect out-of-corpus by score)
+  mean top score : 0.347
+  score gap (in - out): 0.340  (larger = easier to detect out-of-corpus by score)
 
 Mean recall@5 by question type:
-  conceptual     0.500  (n=2)
-  disagreement   0.267  (n=2)
-  factual        0.361  (n=4)
-  synthesis      0.244  (n=6)
+  conceptual     0.583  (n=2)
+  disagreement   0.467  (n=2)
+  factual        0.528  (n=4)
+  synthesis      0.388  (n=6)

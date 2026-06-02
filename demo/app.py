@@ -9,42 +9,74 @@ goal is to show HOW the system works, not just THAT it works.
 Lightweight by design: dense retrieval only (no reranker, no hybrid) so
 that the demo stays responsive on a free Hugging Face Space. The full
 project on GitHub documents and measures the alternative configurations.
+
+The Chroma index is NOT versioned (too large for plain Git on the Space).
+Instead, the demo ships with `chunks.jsonl` and rebuilds the index on the
+first startup of the Space, then reuses it for subsequent sessions as
+long as the container persists. Worst-case extra wait on a cold start:
+a few minutes for embedding 1838 chunks on CPU.
 """
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 # Local copies of the project modules, sitting next to this file.
-from generation import Retriever, answer as rag_answer
+from retrieve import Retriever
+from generate import answer as rag_answer
+from embed_and_index import main as build_index, DB_PATH, COLLECTION
 
 # --- Configuration -----------------------------------------------------------
-GITHUB_URL = "https://github.com/YOUR_HANDLE/YOUR_REPO"   # adjust before deploy
-MAX_REQUESTS_PER_SESSION = 5     # rate limit to protect the API budget
+GITHUB_URL = "https://github.com/YMALOT/RAG-assemblee"
+MAX_REQUESTS_PER_SESSION = 5
 DEFAULT_K = 5
+CHUNKS_PATH = "chunks.jsonl"
 
 EXAMPLE_QUESTIONS = [
     "Combien d'enfants sont touchés par le harcèlement scolaire chaque année ?",
     "La loi cible-t-elle aussi le harcèlement venant des adultes ?",
     "Qu'a dit le ministre Blanquer sur la formation des personnels ?",
     "Quels sont les arguments des détracteurs de la loi ?",
-    # An out-of-corpus example, to showcase the guardrail
     "Quel était le budget de l'Éducation Nationale en 2019 ?",
 ]
 
 
-# --- Resource loading (cached so it runs once per Space restart) -------------
+# --- Index bootstrap --------------------------------------------------------
+def index_ready() -> bool:
+    """Heuristic: the index is considered ready if the Chroma directory
+    exists and the named collection holds vectors."""
+    if not Path(DB_PATH).exists():
+        return False
+    try:
+        import chromadb
+        client = chromadb.PersistentClient(path=DB_PATH)
+        coll = client.get_collection(COLLECTION)
+        return coll.count() > 0
+    except Exception:
+        return False
+
+
 @st.cache_resource
 def get_retriever() -> Retriever:
-    """Load the dense retriever once and keep it in memory."""
+    """Build the index on first call if missing, then load the retriever.
+    Cached as a resource: the cost is paid once per Space lifecycle."""
+    if not index_ready():
+        with st.spinner(
+            "Première utilisation depuis le déploiement : indexation du "
+            "corpus en cours (calcul des embeddings sur CPU, ~3-5 minutes). "
+            "Les visites suivantes seront immédiates."
+        ):
+            build_index(CHUNKS_PATH)
     return Retriever()
 
 
+# --- Helpers ----------------------------------------------------------------
 def format_date(iso: str) -> str:
     return f"{iso[:4]}-{iso[4:6]}-{iso[6:8]}" if len(iso) == 8 else iso
 
 
-# --- Session state ----------------------------------------------------------
 def init_session() -> None:
     if "request_count" not in st.session_state:
         st.session_state.request_count = 0
@@ -53,7 +85,6 @@ def init_session() -> None:
 
 
 def pick_example(q: str) -> None:
-    """Callback for example buttons: fills the input on next rerun."""
     st.session_state.pending_question = q
 
 
@@ -75,8 +106,12 @@ def main() -> None:
     st.markdown(f"📂 [Code complet et documentation sur GitHub]({GITHUB_URL})")
     st.divider()
 
-    # Example questions as buttons
-    st.markdown("**Exemples de questions** _(la dernière est volontairement hors-corpus, pour montrer le garde-fou)_ :")
+    # Force-load (and possibly build) the retriever before the UI accepts
+    # input. This makes the cold-start cost explicit and one-shot.
+    retriever = get_retriever()
+
+    st.markdown("**Exemples de questions** _(la dernière est volontairement "
+                "hors-corpus, pour montrer le garde-fou)_ :")
     cols = st.columns(len(EXAMPLE_QUESTIONS))
     for col, ex in zip(cols, EXAMPLE_QUESTIONS):
         col.button(ex[:45] + ("…" if len(ex) > 45 else ""),
@@ -84,13 +119,11 @@ def main() -> None:
                    on_click=pick_example, args=(ex,),
                    use_container_width=True)
 
-    # Question input — uses the pending example if any
     question = st.text_input(
         "Votre question :",
         value=st.session_state.pending_question,
         placeholder="Ex. : Comment la loi définit-elle le harcèlement scolaire ?",
     )
-    # Reset the pending state so editing works normally afterwards
     st.session_state.pending_question = ""
 
     if not st.button("Interroger le RAG", type="primary"):
@@ -99,7 +132,6 @@ def main() -> None:
         st.warning("Saisissez une question.")
         return
 
-    # Soft rate limit per session
     if st.session_state.request_count >= MAX_REQUESTS_PER_SESSION:
         st.error(
             f"Limite de {MAX_REQUESTS_PER_SESSION} requêtes par session "
@@ -109,8 +141,6 @@ def main() -> None:
         )
         return
 
-    # Run the actual RAG turn
-    retriever = get_retriever()
     with st.spinner("Recherche puis génération…"):
         try:
             generated, hits = rag_answer(
@@ -122,11 +152,9 @@ def main() -> None:
             return
     st.session_state.request_count += 1
 
-    # --- Answer ------------------------------------------------------------
     st.markdown("### Réponse")
     st.markdown(generated)
 
-    # --- Behind-the-scenes panel ------------------------------------------
     with st.expander(f"🔍 Voir les {len(hits)} passages utilisés "
                      f"(coulisses du RAG)", expanded=False):
         st.caption(
@@ -145,9 +173,8 @@ def main() -> None:
                 f"_{format_date(h.date_iso)} — {who} — {h.agenda_item}_"
             )
             st.markdown(f"> {h.text}")
-            st.markdown("")  # spacer
+            st.markdown("")
 
-    # --- Footer ------------------------------------------------------------
     st.caption(
         f"Requêtes utilisées cette session : "
         f"{st.session_state.request_count}/{MAX_REQUESTS_PER_SESSION}"

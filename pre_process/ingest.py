@@ -26,7 +26,7 @@ NAMESPACE = {"an": "http://schemas.assemblee-nationale.fr/referentiel"}
 # "Info Italiques" / "Signature droite" = procedural stage directions
 # (session open/close, amendment vote results, applause). Kept but flagged.
 PROCEDURAL_STYLES = {"Info Italiques", "Signature droite"}
-CORPUS_PATH = Path("../data/corpus.jsonl")
+CORPUS_PATH = Path("./data/corpus.jsonl")
 
 
 @dataclass

@@ -8,6 +8,10 @@ d'évaluation annoté manuellement, améliorations chiffrées.
  
 🇬🇧 *English version: [README.md](README.md)*
  
+## Démo interactive
+
+[Lien HF](https://huggingface.co/spaces/ton-handle-hf/rag-assemblee-demo)
+
 ## Pipeline
  
 `XML syceron → ingest.py → chunk.py → embed_and_index.py → Chroma`

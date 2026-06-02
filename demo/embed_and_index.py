@@ -23,12 +23,7 @@ from pathlib import Path
 import chromadb
 from sentence_transformers import SentenceTransformer
 
-try:
-    from .chunk import CHUNKS_PATH
-except ImportError:
-    import sys
-    sys.path.insert(0, str(Path(__file__).parent))
-    from chunk import CHUNKS_PATH
+CHUNKS_PATH = "chunks.jsonl"
 
 # --- Configuration ---------------------------------------------------------
 MODEL_NAME = "intfloat/multilingual-e5-base"  # strong FR support, CPU-friendly

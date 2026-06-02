@@ -23,7 +23,12 @@ import re
 import statistics
 from pathlib import Path
 
-from .chunk import CHUNKS_PATH
+try:
+    from .chunk import CHUNKS_PATH
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from chunk import CHUNKS_PATH
 
 # Heuristic quality flags (not errors — just things worth a human glance).
 _GLUED = re.compile(r'[a-zà-öø-ÿ]{2}[.!?…][«"A-ZÀ-Þ]')  # sentence glued

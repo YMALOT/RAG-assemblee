@@ -21,13 +21,18 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-from .ingest import CORPUS_PATH
+try:
+    from .ingest import CORPUS_PATH
+except ImportError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from ingest import CORPUS_PATH
 
 # --- Tunable parameters (later varied in evaluation) -----------------------
 MAX_CHARS = 1000  # interventions longer than this get re-split
 TARGET_CHARS = 900  # target size when accumulating sentences into a chunk
 OVERLAP_SENTENCES = 1  # sentence overlap between consecutive sub-chunks
-CHUNKS_PATH = Path("../data/chunks.jsonl")
+CHUNKS_PATH = Path("./data/chunks.jsonl")
 
 # Abbreviations whose trailing "." must NOT be treated as a sentence end.
 # Python's `re` forbids variable-width look-behind, so instead of encoding these

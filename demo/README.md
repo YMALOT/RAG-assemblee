@@ -19,4 +19,4 @@ débats et génère une réponse en citant ses sources. Un panneau « coulisses 
 affiche les chunks récupérés.
 
 **👉 Code complet, méthodologie d'évaluation et résultats chiffrés :**
-[github.com/YOUR_HANDLE/YOUR_REPO](https://github.com/YOUR_HANDLE/YOUR_REPO)
+[https://github.com/YMALOT/RAG-assemblee](https://github.com/YMALOT/RAG-assemblee)

@@ -7,6 +7,10 @@ LangChain), hand-annotated evaluation set, measured improvements.
  
 🇫🇷 *Version française : [README.fr.md](README.fr.md)*
  
+## Interactive demo
+
+[HF link](https://huggingface.co/spaces/ton-handle-hf/rag-assemblee-demo)
+
 ## Pipeline
  
 `XML syceron → ingest.py → chunk.py → embed_and_index.py → Chroma`

@@ -13,9 +13,6 @@ project on GitHub documents and measures the alternative configurations.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
 import streamlit as st
 
 # Local copies of the project modules, sitting next to this file.

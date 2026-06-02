@@ -16,23 +16,37 @@ Code/identifiers in English; French kept only for corpus text and abbreviations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
-from pathlib import Path
 import json
 import re
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 # --- Tunable parameters (later varied in evaluation) -----------------------
-MAX_CHARS = 1000          # interventions longer than this get re-split
-TARGET_CHARS = 900        # target size when accumulating sentences into a chunk
-OVERLAP_SENTENCES = 1     # sentence overlap between consecutive sub-chunks
+MAX_CHARS = 1000  # interventions longer than this get re-split
+TARGET_CHARS = 900  # target size when accumulating sentences into a chunk
+OVERLAP_SENTENCES = 1  # sentence overlap between consecutive sub-chunks
 
 # Abbreviations whose trailing "." must NOT be treated as a sentence end.
 # Python's `re` forbids variable-width look-behind, so instead of encoding these
 # in the split regex we split first, then merge back the false breaks caused by
 # an abbreviation appearing right before the boundary.
 _ABBREVIATIONS = {
-    "M", "MM", "Mme", "Mmes", "Mlle", "Dr", "art", "al", "no", "nos",
-    "cf", "p", "etc", "vol", "ch", "param",
+    "M",
+    "MM",
+    "Mme",
+    "Mmes",
+    "Mlle",
+    "Dr",
+    "art",
+    "al",
+    "no",
+    "nos",
+    "cf",
+    "p",
+    "etc",
+    "vol",
+    "ch",
+    "param",
 }
 # Candidate sentence boundary: punctuation + space + capital/quote/digit.
 _SENTENCE_END = re.compile(r'(?<=[.!?…])\s+(?=[«"A-ZÀ-ÖØ-Þ0-9])')
@@ -43,8 +57,9 @@ _LAST_TOKEN = re.compile(r"([A-Za-zÀ-ÖØ-öø-ÿ]+)\.?\s*$")
 @dataclass
 class Chunk:
     """One embedding-ready unit of text plus its provenance metadata."""
-    chunk_id: str             # stable id: "<session_uid>_<syceron_id>_<part>"
-    text: str                 # the chunk's own text (without context prefix)
+
+    chunk_id: str  # stable id: "<session_uid>_<syceron_id>_<part>"
+    text: str  # the chunk's own text (without context prefix)
     speaker: str | None
     role: str | None
     agenda_item: str
@@ -52,8 +67,8 @@ class Chunk:
     session_uid: str
     date_iso: str
     syceron_id: str | None
-    part: int                 # sub-chunk index within the parent intervention
-    n_parts: int              # total sub-chunks for that intervention
+    part: int  # sub-chunk index within the parent intervention
+    n_parts: int  # total sub-chunks for that intervention
 
     def context_prefix(self) -> str:
         """A short header prepended at EMBEDDING time to enrich the vector.
@@ -125,9 +140,13 @@ def chunk_intervention(row: dict) -> list[Chunk]:
     """Turn one corpus row (parsed intervention) into one or more Chunks."""
     text = row["text"]
     base = dict(
-        speaker=row["speaker"], role=row["role"], agenda_item=row["agenda_item"],
-        is_procedural=row["is_procedural"], session_uid=row["session_uid"],
-        date_iso=row["date_iso"], syceron_id=row["syceron_id"],
+        speaker=row["speaker"],
+        role=row["role"],
+        agenda_item=row["agenda_item"],
+        is_procedural=row["is_procedural"],
+        session_uid=row["session_uid"],
+        date_iso=row["date_iso"],
+        syceron_id=row["syceron_id"],
     )
     sid = row["syceron_id"] or "na"
 
@@ -139,8 +158,13 @@ def chunk_intervention(row: dict) -> list[Chunk]:
 
     n = len(pieces)
     return [
-        Chunk(chunk_id=f"{row['session_uid']}_{sid}_{k}", text=piece,
-              part=k, n_parts=n, **base)
+        Chunk(
+            chunk_id=f"{row['session_uid']}_{sid}_{k}",
+            text=piece,
+            part=k,
+            n_parts=n,
+            **base,
+        )
         for k, piece in enumerate(pieces)
     ]
 
@@ -160,7 +184,9 @@ def save_chunks(chunks: list[Chunk], out_path: str | Path) -> None:
 
 
 if __name__ == "__main__":
-    import statistics, sys
+    import statistics
+    import sys
+
     src = sys.argv[1] if len(sys.argv) > 1 else "corpus.jsonl"
     print(src)
     chunks = build_chunks(src)
@@ -170,8 +196,10 @@ if __name__ == "__main__":
     split_parents = sum(1 for c in chunks if c.n_parts > 1 and c.part == 0)
     print(f"{len(chunks)} chunks from corpus (was fewer interventions).")
     print(f"  re-split interventions: {split_parents}")
-    print(f"  chunk length: min={lengths[0]} "
-          f"median={statistics.median(lengths):.0f} max={lengths[-1]}")
+    print(
+        f"  chunk length: min={lengths[0]} "
+        f"median={statistics.median(lengths):.0f} max={lengths[-1]}"
+    )
     print("\nExample embedding text (a long, re-split intervention):")
     for c in chunks:
         if c.n_parts > 1:

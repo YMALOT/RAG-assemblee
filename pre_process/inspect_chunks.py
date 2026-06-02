@@ -26,9 +26,9 @@ from pathlib import Path
 CHUNKS_PATH = "chunks.jsonl"
 
 # Heuristic quality flags (not errors — just things worth a human glance).
-_GLUED = re.compile(r'[a-zà-öø-ÿ]{2}[.!?…][«"A-ZÀ-Þ]')      # sentence glued
-_GLUED_QUOTE = re.compile(r'[.!?…]\s*»[«"A-ZÀ-Þ]')           # glued after »
-_STARTS_LOWER = re.compile(r"^[a-zà-öø-ÿ]")                   # starts mid-sentence
+_GLUED = re.compile(r'[a-zà-öø-ÿ]{2}[.!?…][«"A-ZÀ-Þ]')  # sentence glued
+_GLUED_QUOTE = re.compile(r'[.!?…]\s*»[«"A-ZÀ-Þ]')  # glued after »
+_STARTS_LOWER = re.compile(r"^[a-zà-öø-ÿ]")  # starts mid-sentence
 
 
 def load_chunks(path: str | Path) -> list[dict]:
@@ -44,7 +44,7 @@ def flags_for(text: str) -> list[str]:
     if _STARTS_LOWER.match(text.strip()):
         f.append("starts-lowercase")
     if text.count("«") != text.count("»"):
-        f.append("unbalanced-quotes")   # often normal: citation spans chunks
+        f.append("unbalanced-quotes")  # often normal: citation spans chunks
     return f
 
 
@@ -77,14 +77,18 @@ def summary(chunks: list[dict], k_target: int) -> None:
     print("=" * 72)
     print(f"CHUNK SET HEALTH REPORT  ({n} chunks)")
     print("=" * 72)
-    print(f"length (chars): min={lengths[0]}  "
-          f"p50={statistics.median(lengths):.0f}  "
-          f"mean={statistics.mean(lengths):.0f}  "
-          f"p95={lengths[int(n*0.95)]}  max={lengths[-1]}")
+    print(
+        f"length (chars): min={lengths[0]}  "
+        f"p50={statistics.median(lengths):.0f}  "
+        f"mean={statistics.mean(lengths):.0f}  "
+        f"p95={lengths[int(n*0.95)]}  max={lengths[-1]}"
+    )
 
     procedural = sum(1 for c in chunks if c["is_procedural"])
-    print(f"procedural: {procedural} ({100*procedural/n:.1f}%)  |  "
-          f"debate: {n-procedural}")
+    print(
+        f"procedural: {procedural} ({100*procedural/n:.1f}%)  |  "
+        f"debate: {n-procedural}"
+    )
 
     subchunks = sum(1 for c in chunks if c["n_parts"] > 1)
     print(f"sub-chunks (from re-split interventions): {subchunks}")
@@ -114,10 +118,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Inspect chunking quality.")
     ap.add_argument("--k", type=int, default=5, help="number of chunks to sample")
     ap.add_argument("--seed", type=int, default=None, help="seed for reproducibility")
-    ap.add_argument("--long", action="store_true",
-                    help="sample from the longest chunks instead of randomly")
-    ap.add_argument("--flags-only", action="store_true",
-                    help="only show the health report, no sampled chunks")
+    ap.add_argument(
+        "--long",
+        action="store_true",
+        help="sample from the longest chunks instead of randomly",
+    )
+    ap.add_argument(
+        "--flags-only",
+        action="store_true",
+        help="only show the health report, no sampled chunks",
+    )
     ap.add_argument("--chunks", default=CHUNKS_PATH)
     args = ap.parse_args()
 
@@ -128,14 +138,17 @@ def main() -> None:
         return
 
     if args.long:
-        sample = sorted(chunks, key=lambda c: -len(c["text"]))[:args.k]
+        sample = sorted(chunks, key=lambda c: -len(c["text"]))[: args.k]
         print(f"\n{args.k} LONGEST chunks:")
     else:
         if args.seed is not None:
             random.seed(args.seed)
         sample = random.sample(chunks, min(args.k, len(chunks)))
-        print(f"\n{len(sample)} RANDOM chunks"
-              + (f" (seed={args.seed})" if args.seed is not None else "") + ":")
+        print(
+            f"\n{len(sample)} RANDOM chunks"
+            + (f" (seed={args.seed})" if args.seed is not None else "")
+            + ":"
+        )
 
     for c in sample:
         print_chunk(c)

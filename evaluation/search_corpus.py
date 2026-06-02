@@ -41,7 +41,7 @@ def search(chunks: list[dict], terms: list[str], require_all: bool) -> list[dict
     for c in chunks:
         hay = normalize(c["text"])
         matches = [t in hay for t in norm_terms]
-        if (all(matches) if require_all else any(matches)):
+        if all(matches) if require_all else any(matches):
             hits.append(c)
     return hits
 
@@ -49,10 +49,14 @@ def search(chunks: list[dict], terms: list[str], require_all: bool) -> list[dict
 def main() -> None:
     ap = argparse.ArgumentParser(description="Keyword search over chunks.")
     ap.add_argument("terms", nargs="+", help="one or more search terms")
-    ap.add_argument("--all", action="store_true",
-                    help="require ALL terms (default: ANY term)")
-    ap.add_argument("--full", action="store_true",
-                    help="print the full chunk text (default: 160-char preview)")
+    ap.add_argument(
+        "--all", action="store_true", help="require ALL terms (default: ANY term)"
+    )
+    ap.add_argument(
+        "--full",
+        action="store_true",
+        help="print the full chunk text (default: 160-char preview)",
+    )
     ap.add_argument("--chunks", default=CHUNKS_PATH)
     args = ap.parse_args()
 
@@ -60,17 +64,20 @@ def main() -> None:
     hits = search(chunks, args.terms, require_all=args.all)
 
     mode = "ALL" if args.all else "ANY"
-    print(f'{len(hits)} chunk(s) matching [{mode}] {args.terms}\n' + "=" * 70)
+    print(f"{len(hits)} chunk(s) matching [{mode}] {args.terms}\n" + "=" * 70)
     for c in hits:
         who = c["speaker"] or "—"
         if c["role"]:
             who += f", {c['role']}"
         date = c["date_iso"]
         date = f"{date[:4]}-{date[4:6]}-{date[6:8]}" if len(date) == 8 else date
-        body = c["text"] if args.full else c["text"][:160] + (
-            "…" if len(c["text"]) > 160 else "")
+        body = (
+            c["text"]
+            if args.full
+            else c["text"][:160] + ("…" if len(c["text"]) > 160 else "")
+        )
         print(f'\n[{c["chunk_id"]}]  {date} — {who}')
-        print(f'  {body}')
+        print(f"  {body}")
 
 
 if __name__ == "__main__":

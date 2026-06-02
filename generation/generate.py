@@ -25,14 +25,17 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 try:
-    from generation.retrieve import Retriever, Hit
+    from generation.retrieve import Hit, Retriever
 except ImportError:
-    from retrieve import Retriever, Hit  # type: ignore[no-redef]  # direct script execution
+    from retrieve import (  # type: ignore[no-redef]  # direct script execution
+        Hit,
+        Retriever,
+    )
 
 # --- Backend configuration (override via env vars to switch to a remote API) -
 load_dotenv()
 BASE_URL = os.environ.get("RAG_LLM_BASE_URL", "http://localhost:11434/v1")
-API_KEY = os.environ.get("RAG_LLM_API_KEY", "ollama")   # unused by Ollama
+API_KEY = os.environ.get("RAG_LLM_API_KEY", "ollama")  # unused by Ollama
 MODEL = os.environ.get("RAG_LLM_MODEL", "qwen2.5:0.5b")
 
 SYSTEM_PROMPT = (
@@ -78,8 +81,12 @@ def build_messages(question: str, hits: list[Hit]) -> list[dict]:
     ]
 
 
-def answer(question: str, k: int = 5, exclude_procedural: bool = True,
-           retriever: Retriever | None = None) -> tuple[str, list[Hit]]:
+def answer(
+    question: str,
+    k: int = 5,
+    exclude_procedural: bool = True,
+    retriever: Retriever | None = None,
+) -> tuple[str, list[Hit]]:
     """Full RAG turn: retrieve, build prompt, generate. Returns (answer, hits)."""
     retriever = retriever or Retriever()
     where = {"is_procedural": False} if exclude_procedural else None
@@ -89,7 +96,7 @@ def answer(question: str, k: int = 5, exclude_procedural: bool = True,
     resp = client.chat.completions.create(
         model=MODEL,
         messages=build_messages(question, hits),
-        temperature=0.2,        # low: we want faithful, not creative, answers
+        temperature=0.2,  # low: we want faithful, not creative, answers
     )
     return resp.choices[0].message.content, hits
 
@@ -98,12 +105,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Ask the debate-corpus RAG.")
     ap.add_argument("question")
     ap.add_argument("--k", type=int, default=5)
-    ap.add_argument("--include-procedural", action="store_true",
-                    help="also retrieve procedural notes (votes, applause)")
+    ap.add_argument(
+        "--include-procedural",
+        action="store_true",
+        help="also retrieve procedural notes (votes, applause)",
+    )
     args = ap.parse_args()
 
     text, hits = answer(
-        args.question, k=args.k,
+        args.question,
+        k=args.k,
         exclude_procedural=not args.include_procedural,
     )
     print(f"\nQuestion : {args.question}\n" + "=" * 70)
@@ -113,8 +124,7 @@ def main() -> None:
     for h in hits:
         iso = h.date_iso
         date = f"{iso[:4]}-{iso[4:6]}-{iso[6:8]}" if len(iso) == 8 else iso
-        print(f"  [{h.rank}] {h.speaker or '—'} — {date} "
-              f"(score {h.score:.3f})")
+        print(f"  [{h.rank}] {h.speaker or '—'} — {date} " f"(score {h.score:.3f})")
 
 
 if __name__ == "__main__":

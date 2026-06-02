@@ -34,11 +34,11 @@ from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
-from generation.retrieve import Retriever, Hit   # reuse dense retriever and Hit type
+from generation.retrieve import Hit, Retriever  # reuse dense retriever and Hit type
 
 CHUNKS_PATH = "chunks.jsonl"
 DEFAULT_N_CANDIDATES = 20
-RRF_K = 60                              # Cormack et al.'s well-known default
+RRF_K = 60  # Cormack et al.'s well-known default
 
 
 def normalize_text(s: str) -> str:
@@ -61,10 +61,12 @@ def tokenize(text: str) -> list[str]:
 class HybridRetriever:
     """Dense + BM25 with RRF fusion. Same interface as Retriever."""
 
-    def __init__(self,
-                 chunks_path: str = CHUNKS_PATH,
-                 n_candidates: int = DEFAULT_N_CANDIDATES,
-                 rrf_k: int = RRF_K) -> None:
+    def __init__(
+        self,
+        chunks_path: str = CHUNKS_PATH,
+        n_candidates: int = DEFAULT_N_CANDIDATES,
+        rrf_k: int = RRF_K,
+    ) -> None:
         self.n_candidates = n_candidates
         self.rrf_k = rrf_k
         self.dense = Retriever()
@@ -103,8 +105,7 @@ class HybridRetriever:
         return sorted(scores.items(), key=lambda x: -x[1])
 
     # --------------------------------------------------------------- search
-    def search(self, question: str, k: int = 5,
-               where: dict | None = None) -> list[Hit]:
+    def search(self, question: str, k: int = 5, where: dict | None = None) -> list[Hit]:
         # 1. Dense candidates (with optional metadata filter, e.g. is_procedural).
         dense_hits = self.dense.search(question, k=self.n_candidates, where=where)
         dense_ids = [h.chunk_id for h in dense_hits]
@@ -117,9 +118,10 @@ class HybridRetriever:
         if where and "is_procedural" in where:
             wanted_proc = where["is_procedural"]
             bm25_ids = [
-                cid for cid in bm25_ids
+                cid
+                for cid in bm25_ids
                 if bool(self._chunks_by_id[cid].get("is_procedural", False))
-                   == wanted_proc
+                == wanted_proc
             ]
 
         # 3. RRF fusion of the two ranked lists.
@@ -134,18 +136,20 @@ class HybridRetriever:
             else:
                 # BM25-only hit: no cosine score; expose the RRF score in `score`.
                 row = self._chunks_by_id[cid]
-                out.append(Hit(
-                    rank=new_rank,
-                    score=rrf_score,
-                    text=row["text"],
-                    speaker=row.get("speaker", "") or "",
-                    role=row.get("role", "") or "",
-                    agenda_item=row.get("agenda_item", "") or "",
-                    date_iso=row.get("date_iso", "") or "",
-                    session_uid=row.get("session_uid", "") or "",
-                    is_procedural=bool(row.get("is_procedural", False)),
-                    chunk_id=cid,
-                ))
+                out.append(
+                    Hit(
+                        rank=new_rank,
+                        score=rrf_score,
+                        text=row["text"],
+                        speaker=row.get("speaker", "") or "",
+                        role=row.get("role", "") or "",
+                        agenda_item=row.get("agenda_item", "") or "",
+                        date_iso=row.get("date_iso", "") or "",
+                        session_uid=row.get("session_uid", "") or "",
+                        is_procedural=bool(row.get("is_procedural", False)),
+                        chunk_id=cid,
+                    )
+                )
         return out
 
 

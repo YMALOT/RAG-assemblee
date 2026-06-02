@@ -17,14 +17,14 @@ Requires:     pip install chromadb sentence-transformers
 
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 import chromadb
 from sentence_transformers import SentenceTransformer
 
 # --- Configuration ---------------------------------------------------------
-MODEL_NAME = "intfloat/multilingual-e5-base"   # strong FR support, CPU-friendly
+MODEL_NAME = "intfloat/multilingual-e5-base"  # strong FR support, CPU-friendly
 DB_PATH = "./chroma_db"
 COLLECTION = "harcelement_scolaire"
 BATCH_SIZE = 64
@@ -35,8 +35,17 @@ PASSAGE_PREFIX = "passage: "
 QUERY_PREFIX = "query: "
 
 # Metadata fields we keep for filtering at retrieval time.
-META_FIELDS = ("speaker", "role", "agenda_item", "is_procedural",
-               "session_uid", "date_iso", "syceron_id", "part", "n_parts")
+META_FIELDS = (
+    "speaker",
+    "role",
+    "agenda_item",
+    "is_procedural",
+    "session_uid",
+    "date_iso",
+    "syceron_id",
+    "part",
+    "n_parts",
+)
 
 
 def load_chunks(path: str | Path) -> list[dict]:
@@ -66,7 +75,7 @@ def clean_metadata(c: dict) -> dict:
     for k in META_FIELDS:
         v = c.get(k)
         if v is None:
-            v = ""              # Chroma rejects None; use empty string
+            v = ""  # Chroma rejects None; use empty string
         out[k] = v
     return out
 
@@ -76,13 +85,15 @@ def main(chunks_path: str) -> None:
     print(f"Loaded {len(chunks)} chunks")
 
     print(f"Loading embedding model: {MODEL_NAME} ...")
-    model = SentenceTransformer(MODEL_NAME, device="cpu")   # downloads on first run
+    model = SentenceTransformer(MODEL_NAME, device="cpu")  # downloads on first run
 
     print("Embedding (this runs on CPU; a few minutes is normal)...")
     texts = [embedding_text(c) for c in chunks]
     embeddings = model.encode(
-        texts, batch_size=BATCH_SIZE, show_progress_bar=True,
-        normalize_embeddings=True,            # cosine similarity via dot product
+        texts,
+        batch_size=BATCH_SIZE,
+        show_progress_bar=True,
+        normalize_embeddings=True,  # cosine similarity via dot product
     ).tolist()
 
     client = chromadb.PersistentClient(path=DB_PATH)
@@ -93,23 +104,25 @@ def main(chunks_path: str) -> None:
         pass
     collection = client.create_collection(
         name=COLLECTION,
-        metadata={"hnsw:space": "cosine"},    # match normalized embeddings
+        metadata={"hnsw:space": "cosine"},  # match normalized embeddings
     )
 
     ids = [c["chunk_id"] for c in chunks]
-    documents = [c["text"] for c in chunks]   # raw text, for display/citation
+    documents = [c["text"] for c in chunks]  # raw text, for display/citation
     metadatas = [clean_metadata(c) for c in chunks]
 
     for i in range(0, len(chunks), BATCH_SIZE):
         sl = slice(i, i + BATCH_SIZE)
         collection.add(
-            ids=ids[sl], documents=documents[sl],
-            embeddings=embeddings[sl], metadatas=metadatas[sl],
+            ids=ids[sl],
+            documents=documents[sl],
+            embeddings=embeddings[sl],
+            metadatas=metadatas[sl],
         )
-    print(f"\nIndexed {collection.count()} chunks into "
-          f"'{COLLECTION}' at {DB_PATH}")
+    print(f"\nIndexed {collection.count()} chunks into " f"'{COLLECTION}' at {DB_PATH}")
 
 
 if __name__ == "__main__":
     import sys
+
     main(sys.argv[1] if len(sys.argv) > 1 else "chunks.jsonl")

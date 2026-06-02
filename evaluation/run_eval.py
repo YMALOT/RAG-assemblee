@@ -1,4 +1,3 @@
-
 """
 Evaluation harness for the retrieval step.
 
@@ -17,7 +16,6 @@ Usage:
   python run_eval.py                       # uses eval/questions.jsonl, k=5
   python run_eval.py --k 10 --no-procedural
 """
-
 
 from __future__ import annotations
 
@@ -39,7 +37,7 @@ def load_questions(path: str | Path) -> list[dict]:
 
 def recall_at_k(retrieved_ids: list[str], relevant_ids: list[str]) -> float:
     if not relevant_ids:
-        return float("nan")          # undefined when there are no relevant chunks
+        return float("nan")  # undefined when there are no relevant chunks
     found = sum(1 for r in relevant_ids if r in retrieved_ids)
     return found / len(relevant_ids)
 
@@ -52,7 +50,9 @@ def reciprocal_rank(retrieved_ids: list[str], relevant_ids: list[str]) -> float:
     return 0.0
 
 
-def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool) -> None:
+def evaluate(
+    retriever, questions: list[dict], k: int, exclude_procedural: bool
+) -> None:
     where = {"is_procedural": False} if exclude_procedural else None
 
     in_corpus_rows, out_corpus_rows = [], []
@@ -69,13 +69,17 @@ def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool)
             rr = reciprocal_rank(retrieved_ids, rel)
             hit = 1.0 if rr > 0 else 0.0
             in_corpus_rows.append((q, rec, rr, hit, top_score))
-            print(f'[{q["id"]}] {q.get("type","?"):12} '
-                  f'recall@{k}={rec:.2f}  RR={rr:.2f}  top={top_score:.3f}  '
-                  f'{q["question"][:50]}')
+            print(
+                f'[{q["id"]}] {q.get("type","?"):12} '
+                f"recall@{k}={rec:.2f}  RR={rr:.2f}  top={top_score:.3f}  "
+                f'{q["question"][:50]}'
+            )
         else:
             out_corpus_rows.append((q, top_score))
-            print(f'[{q["id"]}] {"out_of_corpus":12} '
-                  f'top={top_score:.3f}  {q["question"][:50]}')
+            print(
+                f'[{q["id"]}] {"out_of_corpus":12} '
+                f'top={top_score:.3f}  {q["question"][:50]}'
+            )
 
     print("\n" + "=" * 70)
     if in_corpus_rows:
@@ -85,8 +89,10 @@ def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool)
         in_scores = [s for _, _, _, _, s in in_corpus_rows]
         print(f"In-corpus questions: {len(in_corpus_rows)}")
         print(f"  mean recall@{k} : {mean(recalls):.3f}")
-        print(f"  hit@{k}         : {mean(hits_):.3f}  "
-              f"(fraction with >=1 relevant chunk in top {k})")
+        print(
+            f"  hit@{k}         : {mean(hits_):.3f}  "
+            f"(fraction with >=1 relevant chunk in top {k})"
+        )
         print(f"  MRR            : {mean(rrs):.3f}")
         print(f"  mean top score : {mean(in_scores):.3f}")
     if out_corpus_rows:
@@ -95,8 +101,10 @@ def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool)
         print(f"  mean top score : {mean(out_scores):.3f}")
         if in_corpus_rows:
             gap = mean(in_scores) - mean(out_scores)
-            print(f"  score gap (in - out): {gap:.3f}  "
-                  f"(larger = easier to detect out-of-corpus by score)")
+            print(
+                f"  score gap (in - out): {gap:.3f}  "
+                f"(larger = easier to detect out-of-corpus by score)"
+            )
 
     # Per-type breakdown (in-corpus only)
     by_type: dict[str, list[float]] = {}
@@ -107,30 +115,43 @@ def evaluate(retriever, questions: list[dict], k: int, exclude_procedural: bool)
         for t, vals in sorted(by_type.items()):
             print(f"  {t:14} {mean(vals):.3f}  (n={len(vals)})")
 
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Evaluate retrieval quality.")
     ap.add_argument("--questions", default=QUESTIONS_PATH)
     ap.add_argument("--k", type=int, default=5)
-    ap.add_argument("--no-procedural", action="store_true",
-                    help="exclude procedural chunks during retrieval")
-    ap.add_argument("--rerank", action="store_true",
-                    help="use cross-encoder reranking on top of dense retrieval")
-    ap.add_argument("--hybrid", action="store_true",
-                    help="use hybrid dense+BM25 retrieval with RRF fusion")
+    ap.add_argument(
+        "--no-procedural",
+        action="store_true",
+        help="exclude procedural chunks during retrieval",
+    )
+    ap.add_argument(
+        "--rerank",
+        action="store_true",
+        help="use cross-encoder reranking on top of dense retrieval",
+    )
+    ap.add_argument(
+        "--hybrid",
+        action="store_true",
+        help="use hybrid dense+BM25 retrieval with RRF fusion",
+    )
     args = ap.parse_args()
- 
+
     questions = load_questions(args.questions)
     print(f"Evaluating {len(questions)} questions (k={args.k})\n" + "=" * 70)
     if args.rerank and args.hybrid:
         raise SystemExit("Choose --rerank OR --hybrid, not both.")
     if args.rerank:
         from generation import RerankedRetriever
+
         retriever = RerankedRetriever()
     elif args.hybrid:
         from generation import HybridRetriever
+
         retriever = HybridRetriever()
     else:
         from generation import Retriever
+
         retriever = Retriever()
     evaluate(retriever, questions, k=args.k, exclude_procedural=args.no_procedural)
 

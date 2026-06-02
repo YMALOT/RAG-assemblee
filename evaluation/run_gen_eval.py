@@ -43,12 +43,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Reuse the production generation pipeline and its prompts, just swap in
 # the reranked retriever as the retriever component.
-from generation import RerankedRetriever, answer as rag_answer, BASE_URL, API_KEY
+from generation import API_KEY, BASE_URL, RerankedRetriever
+from generation import answer as rag_answer
 
 QUESTIONS_PATH = "evaluation/questions.jsonl"
 RESULTS_PATH = "evaluation/generation_results.jsonl"
@@ -154,8 +155,7 @@ def parse_judge_json(raw: str) -> dict:
         raise
 
 
-def judge(client: OpenAI, question: dict, generated: str,
-          context: str) -> dict:
+def judge(client: OpenAI, question: dict, generated: str, context: str) -> dict:
     """Call Sonnet 4.6 as judge, return the parsed verdict."""
     if question["in_corpus"]:
         prompt = JUDGE_PROMPT_IN_CORPUS.format(
@@ -222,15 +222,23 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="LLM-as-judge generation eval.")
     ap.add_argument("--questions", default=QUESTIONS_PATH)
     ap.add_argument("--out", default=RESULTS_PATH)
-    ap.add_argument("--limit", type=int, default=None,
-                    help="evaluate only the first N questions (debug)")
+    ap.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="evaluate only the first N questions (debug)",
+    )
     args = ap.parse_args()
 
-    questions = [json.loads(l) for l in Path(args.questions).open(encoding="utf-8") if l.strip()]
+    questions = [
+        json.loads(l) for l in Path(args.questions).open(encoding="utf-8") if l.strip()
+    ]
     if args.limit:
-        questions = questions[:args.limit]
-    print(f"Evaluating generation on {len(questions)} questions "
-          f"(retriever: reranked, judge: {JUDGE_MODEL})\n")
+        questions = questions[: args.limit]
+    print(
+        f"Evaluating generation on {len(questions)} questions "
+        f"(retriever: reranked, judge: {JUDGE_MODEL})\n"
+    )
 
     # Single retriever instance — loading the cross-encoder costs a few seconds.
     retriever = RerankedRetriever()
@@ -244,7 +252,9 @@ def main() -> None:
             print(f"[{q['id']}] {q['question'][:60]}...", flush=True)
             # 1+2. Retrieve + generate (uses the production pipeline).
             generated, hits = rag_answer(
-                q["question"], k=5, exclude_procedural=True,
+                q["question"],
+                k=5,
+                exclude_procedural=True,
                 retriever=retriever,
             )
             context = format_context(hits)
@@ -275,8 +285,10 @@ def main() -> None:
             if "error" in v:
                 pass
             elif q["in_corpus"]:
-                print(f"    faithfulness={v.get('faithfulness')}  "
-                      f"correctness={v.get('correctness')}")
+                print(
+                    f"    faithfulness={v.get('faithfulness')}  "
+                    f"correctness={v.get('correctness')}"
+                )
             else:
                 print(f"    refusal={v.get('refusal')}")
 

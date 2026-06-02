@@ -14,11 +14,11 @@ names imposed by the source and for the corpus text itself.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from pathlib import Path
 import json
 import re
 import xml.etree.ElementTree as ET
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 NAMESPACE = {"an": "http://schemas.assemblee-nationale.fr/referentiel"}
 
@@ -31,24 +31,26 @@ PROCEDURAL_STYLES = {"Info Italiques", "Signature droite"}
 @dataclass
 class SessionMeta:
     """Metadata describing one sitting (séance), shared by all its interventions."""
-    uid: str                  # e.g. "CRSANR5L15S2022O1N080" — unique session id
-    date_iso: str             # sortable, e.g. "20211201"
-    date_label: str           # human-readable, e.g. "mercredi 01 décembre 2021"
-    session: str              # e.g. "Session ordinaire 2021-2022"
-    legislature: str          # e.g. "15"
+
+    uid: str  # e.g. "CRSANR5L15S2022O1N080" — unique session id
+    date_iso: str  # sortable, e.g. "20211201"
+    date_label: str  # human-readable, e.g. "mercredi 01 décembre 2021"
+    session: str  # e.g. "Session ordinaire 2021-2022"
+    legislature: str  # e.g. "15"
 
 
 @dataclass
 class Intervention:
     """A single contiguous turn of speech (or a procedural note)."""
-    speaker: str | None       # e.g. "M. Erwan Balanant"; None for stage directions
-    role: str | None          # the orateur's <qualite>, e.g. "rapporteur..."
-    text: str                 # flattened plain text of the turn
-    agenda_item: str          # title of the nearest titled <point> (ordre du jour)
-    is_procedural: bool       # True for vote results, applause, session open/close
-    syceron_id: str | None    # id_syceron, for citation / traceability
-    session_uid: str          # links back to the SessionMeta it belongs to
-    date_iso: str             # duplicated here for convenient filtering on chunks
+
+    speaker: str | None  # e.g. "M. Erwan Balanant"; None for stage directions
+    role: str | None  # the orateur's <qualite>, e.g. "rapporteur..."
+    text: str  # flattened plain text of the turn
+    agenda_item: str  # title of the nearest titled <point> (ordre du jour)
+    is_procedural: bool  # True for vote results, applause, session open/close
+    syceron_id: str | None  # id_syceron, for citation / traceability
+    session_uid: str  # links back to the SessionMeta it belongs to
+    date_iso: str  # duplicated here for convenient filtering on chunks
 
 
 def _local(tag: str) -> str:
@@ -57,7 +59,7 @@ def _local(tag: str) -> str:
 
 def _flatten(element: ET.Element | None) -> str:
     """All text inside an element, nested tags included, whitespace-normalised.
- 
+
     Empty tags such as <br/> yield no text via itertext(), which can glue two
     sentences together (e.g. "...l'école.Certes..."). We restore a space after
     a sentence-ending punctuation immediately followed by a capital letter or an
@@ -69,11 +71,11 @@ def _flatten(element: ET.Element | None) -> str:
     # Insert a missing space after .!?… when glued to a capital / opening quote,
     # but only when preceded by >=2 lowercase letters (a real word ending), so
     # initial-based acronyms like "U.S.A." are left intact.
-    text = re.sub(r'([a-zà-öø-ÿ]{2}[.!?…])([«"A-ZÀ-ÖØ-Þ])', r'\1 \2', text)
+    text = re.sub(r'([a-zà-öø-ÿ]{2}[.!?…])([«"A-ZÀ-ÖØ-Þ])', r"\1 \2", text)
     # Same glue, but when a closing quote » (with optional space) sits between
     # the punctuation and the next capital, e.g. '...mentale. »Mais...' from a
     # removed <br/> after a quoted sentence.
-    text = re.sub(r'([.!?…]\s*»)([«"A-ZÀ-ÖØ-Þ])', r'\1 \2', text)
+    text = re.sub(r'([.!?…]\s*»)([«"A-ZÀ-ÖØ-Þ])', r"\1 \2", text)
     return text
 
 
@@ -82,19 +84,23 @@ def _speaker_of(paragraph: ET.Element) -> tuple[str | None, str | None]:
     if orateur is None:
         return None, None
     name = (orateur.findtext("an:nom", default="", namespaces=NAMESPACE) or "").strip()
-    role = (orateur.findtext("an:qualite", default="", namespaces=NAMESPACE) or "").strip()
+    role = (
+        orateur.findtext("an:qualite", default="", namespaces=NAMESPACE) or ""
+    ).strip()
     return (name or None), (role or None)
 
 
 def _read_metadata(root: ET.Element) -> SessionMeta:
     meta = root.find(".//an:metadonnees", NAMESPACE)
-    date_raw = (meta.findtext("an:dateSeance", default="", namespaces=NAMESPACE) or "")
+    date_raw = meta.findtext("an:dateSeance", default="", namespaces=NAMESPACE) or ""
     return SessionMeta(
         uid=root.findtext(".//an:uid", default="", namespaces=NAMESPACE) or "",
         date_iso=date_raw[:8],  # YYYYMMDD from the timestamp
-        date_label=meta.findtext("an:dateSeanceJour", default="", namespaces=NAMESPACE) or "",
+        date_label=meta.findtext("an:dateSeanceJour", default="", namespaces=NAMESPACE)
+        or "",
         session=meta.findtext("an:session", default="", namespaces=NAMESPACE) or "",
-        legislature=meta.findtext("an:legislature", default="", namespaces=NAMESPACE) or "",
+        legislature=meta.findtext("an:legislature", default="", namespaces=NAMESPACE)
+        or "",
     )
 
 
@@ -133,7 +139,8 @@ def parse_session(xml_path: str | Path) -> tuple[SessionMeta, list[Intervention]
                     role=role,
                     text=text,
                     agenda_item=nearest_agenda_title(para),
-                    is_procedural=para.attrib.get("code_style", "") in PROCEDURAL_STYLES,
+                    is_procedural=para.attrib.get("code_style", "")
+                    in PROCEDURAL_STYLES,
                     syceron_id=para.attrib.get("id_syceron"),
                     session_uid=meta.uid,
                     date_iso=meta.date_iso,
@@ -149,8 +156,10 @@ def build_corpus(xml_paths: list[str | Path]) -> list[Intervention]:
     corpus: list[Intervention] = []
     for meta, items in parsed:
         speeches = sum(1 for i in items if not i.is_procedural)
-        print(f"  {meta.date_label:32} {meta.uid}  "
-              f"({len(items)} interventions, {speeches} speeches)")
+        print(
+            f"  {meta.date_label:32} {meta.uid}  "
+            f"({len(items)} interventions, {speeches} speeches)"
+        )
         corpus.extend(items)
     return corpus
 
@@ -174,8 +183,10 @@ if __name__ == "__main__":
         "CRSANR5L15S2022O1N165.xml",  # 24 Feb 2022 — final reading
     ]
     # Fall back to whatever files are passed on the command line / available.
-    data_dir = Path('../data/corpus_15e_legislature/corpus')
-    paths = sys.argv[1:] or [data_dir.joinpath(p) for p in SESSIONS if data_dir.joinpath(p).exists()]
+    data_dir = Path("../data/corpus_15e_legislature/corpus")
+    paths = sys.argv[1:] or [
+        data_dir.joinpath(p) for p in SESSIONS if data_dir.joinpath(p).exists()
+    ]
 
     print(f"Building corpus from {len(paths)} session(s):")
     corpus = build_corpus(paths)

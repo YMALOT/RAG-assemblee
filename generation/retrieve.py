@@ -20,8 +20,8 @@ Importable:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import argparse
+from dataclasses import dataclass
 
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -35,8 +35,9 @@ QUERY_PREFIX = "query: "
 @dataclass
 class Hit:
     """One retrieved chunk with its provenance and similarity score."""
+
     rank: int
-    score: float           # cosine similarity (higher = closer)
+    score: float  # cosine similarity (higher = closer)
     text: str
     speaker: str
     role: str
@@ -51,8 +52,10 @@ class Hit:
         if self.role:
             who += f", {self.role}"
         tag = "  [procédural]" if self.is_procedural else ""
-        return (f"#{self.rank}  (id: {self.chunk_id}) (score {self.score:.3f})  "
-                f"{self.date_iso} — {self.agenda_item[:40]}{tag}\n    {who}")
+        return (
+            f"#{self.rank}  (id: {self.chunk_id}) (score {self.score:.3f})  "
+            f"{self.date_iso} — {self.agenda_item[:40]}{tag}\n    {who}"
+        )
 
 
 class Retriever:
@@ -69,27 +72,30 @@ class Retriever:
         res = self.collection.query(
             query_embeddings=vec,
             n_results=k,
-            where=where or None,           # metadata filter, e.g. {"is_procedural": False}
+            where=where or None,  # metadata filter, e.g. {"is_procedural": False}
             include=["documents", "metadatas", "distances"],
         )
         hits: list[Hit] = []
-        ids = res["ids"][0]                # the full chunk_id used at indexing
+        ids = res["ids"][0]  # the full chunk_id used at indexing
         docs = res["documents"][0]
         metas = res["metadatas"][0]
         dists = res["distances"][0]
         for i, (cid, doc, meta, dist) in enumerate(zip(ids, docs, metas, dists)):
-            hits.append(Hit(
-                rank=i + 1,
-                score=1.0 - dist,          # Chroma returns cosine DISTANCE; similarity = 1 - d
-                text=doc,
-                speaker=meta.get("speaker", ""),
-                role=meta.get("role", ""),
-                agenda_item=meta.get("agenda_item", ""),
-                date_iso=meta.get("date_iso", ""),
-                session_uid=meta.get("session_uid", ""),
-                is_procedural=bool(meta.get("is_procedural", False)),
-                chunk_id=cid,              # full id, e.g. CRSANR5L15S2022O1N080_2703323_0
-            ))
+            hits.append(
+                Hit(
+                    rank=i + 1,
+                    score=1.0
+                    - dist,  # Chroma returns cosine DISTANCE; similarity = 1 - d
+                    text=doc,
+                    speaker=meta.get("speaker", ""),
+                    role=meta.get("role", ""),
+                    agenda_item=meta.get("agenda_item", ""),
+                    date_iso=meta.get("date_iso", ""),
+                    session_uid=meta.get("session_uid", ""),
+                    is_procedural=bool(meta.get("is_procedural", False)),
+                    chunk_id=cid,  # full id, e.g. CRSANR5L15S2022O1N080_2703323_0
+                )
+            )
         return hits
 
 
@@ -97,10 +103,16 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Search the debate corpus.")
     ap.add_argument("question", help="the question to search for")
     ap.add_argument("--k", type=int, default=5, help="number of results")
-    ap.add_argument("--no-procedural", action="store_true",
-                    help="exclude procedural notes (votes, applause, session open/close)")
-    ap.add_argument("--session", default=None,
-                    help="restrict to one session uid (e.g. CRSANR5L15S2022O1N080)")
+    ap.add_argument(
+        "--no-procedural",
+        action="store_true",
+        help="exclude procedural notes (votes, applause, session open/close)",
+    )
+    ap.add_argument(
+        "--session",
+        default=None,
+        help="restrict to one session uid (e.g. CRSANR5L15S2022O1N080)",
+    )
     args = ap.parse_args()
 
     where: dict = {}
@@ -112,7 +124,7 @@ def main() -> None:
     r = Retriever()
     hits = r.search(args.question, k=args.k, where=where or None)
 
-    print(f'\nQuestion: {args.question}\n' + "=" * 70)
+    print(f"\nQuestion: {args.question}\n" + "=" * 70)
     for h in hits:
         print(h.header())
         print(f"    {h.text[:280]}{'…' if len(h.text) > 280 else ''}\n")

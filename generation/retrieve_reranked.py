@@ -25,15 +25,18 @@ Importable:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 import argparse
+from dataclasses import dataclass, replace
 
 from sentence_transformers import CrossEncoder
 
 try:
-    from generation.retrieve import Retriever, Hit
+    from generation.retrieve import Hit, Retriever
 except ImportError:
-    from retrieve import Retriever, Hit  # type: ignore[no-redef]  # direct script execution
+    from retrieve import (  # type: ignore[no-redef]  # direct script execution
+        Hit,
+        Retriever,
+    )
 
 # Multilingual cross-encoder. bge-reranker-base is widely used, supports French,
 # and is small enough to run on CPU (~280M params).
@@ -48,17 +51,18 @@ DEFAULT_N_CANDIDATES = 20
 class RerankedRetriever:
     """Dense retrieve + cross-encoder rerank, with the same interface as Retriever."""
 
-    def __init__(self,
-                 n_candidates: int = DEFAULT_N_CANDIDATES,
-                 reranker_model: str = RERANKER_MODEL) -> None:
+    def __init__(
+        self,
+        n_candidates: int = DEFAULT_N_CANDIDATES,
+        reranker_model: str = RERANKER_MODEL,
+    ) -> None:
         self.n_candidates = n_candidates
         # Reuse the existing dense retriever — no duplication of indexing logic.
         self.dense = Retriever()
         # CrossEncoder loads on CPU by default; explicit for clarity.
         self.reranker = CrossEncoder(reranker_model, device="cpu")
 
-    def search(self, question: str, k: int = 5,
-               where: dict | None = None) -> list[Hit]:
+    def search(self, question: str, k: int = 5, where: dict | None = None) -> list[Hit]:
         # 1. Wide dense recall.
         candidates = self.dense.search(question, k=self.n_candidates, where=where)
         if not candidates:
@@ -89,8 +93,12 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Dense retrieval with reranking.")
     ap.add_argument("question")
     ap.add_argument("--k", type=int, default=5)
-    ap.add_argument("--candidates", type=int, default=DEFAULT_N_CANDIDATES,
-                    help="how many candidates to fetch before reranking")
+    ap.add_argument(
+        "--candidates",
+        type=int,
+        default=DEFAULT_N_CANDIDATES,
+        help="how many candidates to fetch before reranking",
+    )
     ap.add_argument("--no-procedural", action="store_true")
     args = ap.parse_args()
 

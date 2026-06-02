@@ -1,9 +1,8 @@
-
 # Looking for relevent sittings (séances)
 
-from pathlib import Path
-import xml.etree.ElementTree as ET
 import shutil
+import xml.etree.ElementTree as ET
+from pathlib import Path
 
 NAMESPACE = {"an": "http://schemas.assemblee-nationale.fr/referentiel"}
 
@@ -12,12 +11,16 @@ source_dir = data_dir.joinpath("debats_15e/xml/compteRendu")
 corpus_dir = data_dir.joinpath("corpus")
 corpus_dir.mkdir(exist_ok=True, parents=True)
 
-KEYWORDS = ["harcèlement scolaire", "harcelement à l'école"]           # broad first; narrow to "harcèlement scolaire" if noisy
+KEYWORDS = [
+    "harcèlement scolaire",
+    "harcelement à l'école",
+]  # broad first; narrow to "harcèlement scolaire" if noisy
 
 
 def full_text(element):
     """Flatten all text within an element, including child tags (exposant, italique...)."""
     return "".join(element.itertext())
+
 
 def main():
     matched = []
@@ -37,17 +40,20 @@ def main():
         blob = " ".join(headings).lower()
 
         if any(keyword in blob for keyword in KEYWORDS):
-            date = root.findtext(".//an:dateSeanceJour", default="?", namespaces=NAMESPACE)
+            date = root.findtext(
+                ".//an:dateSeanceJour", default="?", namespaces=NAMESPACE
+            )
             matched.append((xml_file, date))
             print(f"Matched: {xml_file.name}  —  {date}")
             shutil.copy(xml_file, corpus_dir / xml_file.name)
-        
+
             for heading in toc.iterfind(".//an:intitule", NAMESPACE):
                 text = full_text(heading)
                 if any(k in text.lower() for k in KEYWORDS):
                     print(f"{date:35} | {text.strip()}")
-                  
+
     print(f"\n{len(matched)} sessions copied to {corpus_dir}")
+
 
 if __name__ == "__main__":
     main()

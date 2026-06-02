@@ -70,7 +70,9 @@ def main() -> None:
     if args.from_question:
         wanted += ids_from_question(args.questions, args.from_question)
     if args.file:
-        wanted += [l.strip() for l in Path(args.file).open(encoding="utf-8") if l.strip()]
+        wanted += [
+            l.strip() for l in Path(args.file).open(encoding="utf-8") if l.strip()
+        ]
 
     if not wanted:
         raise SystemExit("Provide chunk ids, --from-question, or --file.")

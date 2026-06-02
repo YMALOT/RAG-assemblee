@@ -25,11 +25,18 @@ import argparse
 import json
 from pathlib import Path
 
-from generation.retrieve import Retriever
-from eval.search_corpus import load_chunks, search, CHUNKS_PATH
+from eval.search_corpus import CHUNKS_PATH, load_chunks, search
 
-TYPES = ["factual", "speaker", "disagreement", "conceptual",
-         "synthesis", "out_of_corpus"]
+from generation.retrieve import Retriever
+
+TYPES = [
+    "factual",
+    "speaker",
+    "disagreement",
+    "conceptual",
+    "synthesis",
+    "out_of_corpus",
+]
 
 
 def show_chunk(n: int, cid: str, text: str, meta_line: str) -> None:
@@ -50,15 +57,16 @@ def parse_selection(raw: str, max_n: int) -> list[int]:
     return out
 
 
-def annotate_one(question: str, retriever: Retriever, all_chunks: list[dict],
-                 k: int) -> dict:
+def annotate_one(
+    question: str, retriever: Retriever, all_chunks: list[dict], k: int
+) -> dict:
     print("\n" + "=" * 72)
     print(f"QUESTION: {question}")
     print("=" * 72)
 
     # 1. Retrieved candidates
     hits = retriever.search(question, k=k)
-    candidates: list[tuple[str, str]] = []   # (chunk_id, short text) for selection
+    candidates: list[tuple[str, str]] = []  # (chunk_id, short text) for selection
     print(f"\n--- Top {k} retrieved chunks ---")
     for i, h in enumerate(hits, start=1):
         who = h.speaker or "—"
@@ -70,12 +78,15 @@ def annotate_one(question: str, retriever: Retriever, all_chunks: list[dict],
 
     sel = parse_selection(
         input("\nRelevant chunk numbers (e.g. '1 3'), or empty if none: "),
-        len(candidates))
+        len(candidates),
+    )
     relevant = {candidates[i - 1][0] for i in sel}
 
     # 2. Optional keyword search to catch missed chunks
-    kw = input("Optional keyword(s) to double-check the corpus "
-               "(space-separated, empty to skip): ").strip()
+    kw = input(
+        "Optional keyword(s) to double-check the corpus "
+        "(space-separated, empty to skip): "
+    ).strip()
     if kw:
         kw_hits = search(all_chunks, kw.split(), require_all=False)
         print(f"\n--- {len(kw_hits)} keyword matches (showing up to 15) ---")
@@ -86,14 +97,21 @@ def annotate_one(question: str, retriever: Retriever, all_chunks: list[dict],
             show_chunk(i, c["chunk_id"], c["text"], meta)
             kw_candidates.append(c["chunk_id"])
         sel2 = parse_selection(
-            input("\nAdditional relevant numbers from keyword search "
-                  "(empty if none): "), len(kw_candidates))
+            input(
+                "\nAdditional relevant numbers from keyword search " "(empty if none): "
+            ),
+            len(kw_candidates),
+        )
         relevant |= {kw_candidates[i - 1] for i in sel2}
 
     # 3. Type and corpus flag
     print(f"\nTypes: {', '.join(f'{i+1}={t}' for i, t in enumerate(TYPES))}")
     t_raw = input("Type number: ").strip()
-    qtype = TYPES[int(t_raw) - 1] if t_raw.isdigit() and 1 <= int(t_raw) <= len(TYPES) else "?"
+    qtype = (
+        TYPES[int(t_raw) - 1]
+        if t_raw.isdigit() and 1 <= int(t_raw) <= len(TYPES)
+        else "?"
+    )
     in_corpus = qtype != "out_of_corpus" and len(relevant) > 0
     if qtype != "out_of_corpus" and not relevant:
         # No relevant chunk found but not flagged out_of_corpus — confirm.
@@ -143,9 +161,11 @@ def main() -> None:
             record = {"id": f"q{idx:02d}", **record}
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
             f.flush()
-            print(f"\n✓ Saved {record['id']}  "
-                  f"({len(record['relevant_chunk_ids'])} relevant chunk(s), "
-                  f"type={record['type']})")
+            print(
+                f"\n✓ Saved {record['id']}  "
+                f"({len(record['relevant_chunk_ids'])} relevant chunk(s), "
+                f"type={record['type']})"
+            )
 
     print(f"\nDone. {idx - existing} question(s) added to {out_path}.")
 

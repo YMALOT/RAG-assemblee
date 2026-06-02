@@ -24,15 +24,15 @@ from pathlib import Path
 import streamlit as st
 
 # Local copies of the project modules, sitting next to this file.
-from retrieve import Retriever
-from generate import answer as rag_answer
-from embed_and_index import main as build_index, DB_PATH, COLLECTION
+from src.retrieve import Retriever
+from src.generate import answer as rag_answer
+from src.embed_and_index import main as build_index, DB_PATH, COLLECTION
 
 # --- Configuration -----------------------------------------------------------
 GITHUB_URL = "https://github.com/YMALOT/RAG-assemblee"
 MAX_REQUESTS_PER_SESSION = 5
 DEFAULT_K = 5
-CHUNKS_PATH = "chunks.jsonl"
+CHUNKS_PATH = "src/chunks.jsonl"
 
 EXAMPLE_QUESTIONS = [
     "Combien d'enfants sont touchés par le harcèlement scolaire chaque année ?",

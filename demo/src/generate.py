@@ -27,7 +27,7 @@ from openai import OpenAI
 try:
     from generation.retrieve import Hit, Retriever
 except ImportError:
-    from retrieve import (  # type: ignore[no-redef]  # direct script execution
+    from src.retrieve import (  # type: ignore[no-redef]  # direct script execution
         Hit,
         Retriever,
     )

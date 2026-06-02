@@ -17,14 +17,13 @@ import os
 from pathlib import Path
 
 import streamlit as st
-from generate import answer as rag_answer
 
 # Local copies of the project modules, sitting next to this file.
-from retrieve import Retriever
+from generation import Retriever, answer as rag_answer
 
 # --- Configuration -----------------------------------------------------------
-GITHUB_URL = "https://github.com/YOUR_HANDLE/YOUR_REPO"  # adjust before deploy
-MAX_REQUESTS_PER_SESSION = 5  # rate limit to protect the API budget
+GITHUB_URL = "https://github.com/YOUR_HANDLE/YOUR_REPO"   # adjust before deploy
+MAX_REQUESTS_PER_SESSION = 5     # rate limit to protect the API budget
 DEFAULT_K = 5
 
 EXAMPLE_QUESTIONS = [
@@ -63,9 +62,8 @@ def pick_example(q: str) -> None:
 
 # --- UI ---------------------------------------------------------------------
 def main() -> None:
-    st.set_page_config(
-        page_title="RAG — débats Assemblée nationale", page_icon="📜", layout="wide"
-    )
+    st.set_page_config(page_title="RAG — débats Assemblée nationale",
+                       page_icon="📜", layout="wide")
     init_session()
 
     st.title("📜 RAG sur les débats parlementaires")
@@ -81,18 +79,13 @@ def main() -> None:
     st.divider()
 
     # Example questions as buttons
-    st.markdown(
-        "**Exemples de questions** _(la dernière est volontairement hors-corpus, pour montrer le garde-fou)_ :"
-    )
+    st.markdown("**Exemples de questions** _(la dernière est volontairement hors-corpus, pour montrer le garde-fou)_ :")
     cols = st.columns(len(EXAMPLE_QUESTIONS))
     for col, ex in zip(cols, EXAMPLE_QUESTIONS):
-        col.button(
-            ex[:45] + ("…" if len(ex) > 45 else ""),
-            key=f"ex_{hash(ex)}",
-            on_click=pick_example,
-            args=(ex,),
-            use_container_width=True,
-        )
+        col.button(ex[:45] + ("…" if len(ex) > 45 else ""),
+                   key=f"ex_{hash(ex)}",
+                   on_click=pick_example, args=(ex,),
+                   use_container_width=True)
 
     # Question input — uses the pending example if any
     question = st.text_input(
@@ -124,9 +117,7 @@ def main() -> None:
     with st.spinner("Recherche puis génération…"):
         try:
             generated, hits = rag_answer(
-                question,
-                k=DEFAULT_K,
-                exclude_procedural=True,
+                question, k=DEFAULT_K, exclude_procedural=True,
                 retriever=retriever,
             )
         except Exception as e:
@@ -139,10 +130,8 @@ def main() -> None:
     st.markdown(generated)
 
     # --- Behind-the-scenes panel ------------------------------------------
-    with st.expander(
-        f"🔍 Voir les {len(hits)} passages utilisés " f"(coulisses du RAG)",
-        expanded=False,
-    ):
+    with st.expander(f"🔍 Voir les {len(hits)} passages utilisés "
+                     f"(coulisses du RAG)", expanded=False):
         st.caption(
             "Ces passages sont récupérés par similarité sémantique "
             "(embeddings `multilingual-e5-base`, distance cosinus) avant "

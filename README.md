@@ -9,7 +9,7 @@ LangChain), hand-annotated evaluation set, measured improvements.
  
 ## Interactive demo
 
-[HF link](https://huggingface.co/spaces/ton-handle-hf/rag-assemblee-demo)
+[HF link](https://huggingface.co/spaces/YMalot/rag-assemblee-demo)
 
 ## Pipeline
  

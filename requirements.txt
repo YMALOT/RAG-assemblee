@@ -1,5 +1,5 @@
-chromadb
-sentence-transformers
-openai
-python-dotenv
-rank-bm25
+chromadb==1.5.9
+sentence-transformers==5.5.1
+openai==2.38.0
+python-dotenv==1.2.2
+rank-bm25==0.2.2

@@ -10,7 +10,7 @@ d'évaluation annoté manuellement, améliorations chiffrées.
  
 ## Démo interactive
 
-[Lien HF](https://huggingface.co/spaces/YMalot/rag-assemblee-demo)
+An interactive demo is available on [Huggingface Spaces](https://huggingface.co/spaces/YMalot/rag-assemblee-demo)
 
 ## Pipeline
  

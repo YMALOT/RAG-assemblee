@@ -21,10 +21,13 @@ import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from .ingest import CORPUS_PATH
+
 # --- Tunable parameters (later varied in evaluation) -----------------------
 MAX_CHARS = 1000  # interventions longer than this get re-split
 TARGET_CHARS = 900  # target size when accumulating sentences into a chunk
 OVERLAP_SENTENCES = 1  # sentence overlap between consecutive sub-chunks
+CHUNKS_PATH = Path("../data/chunks.jsonl")
 
 # Abbreviations whose trailing "." must NOT be treated as a sentence end.
 # Python's `re` forbids variable-width look-behind, so instead of encoding these
@@ -187,10 +190,10 @@ if __name__ == "__main__":
     import statistics
     import sys
 
-    src = sys.argv[1] if len(sys.argv) > 1 else "corpus.jsonl"
+    src = sys.argv[1] if len(sys.argv) > 1 else CORPUS_PATH
     print(src)
     chunks = build_chunks(src)
-    save_chunks(chunks, "chunks.jsonl")
+    save_chunks(chunks, CHUNKS_PATH)
 
     lengths = sorted(len(c.text) for c in chunks)
     split_parents = sum(1 for c in chunks if c.n_parts > 1 and c.part == 0)

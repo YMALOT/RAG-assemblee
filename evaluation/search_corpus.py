@@ -21,7 +21,7 @@ import json
 import unicodedata
 from pathlib import Path
 
-CHUNKS_PATH = "chunks.jsonl"
+from pre_process import CHUNKS_PATH
 
 
 def normalize(s: str) -> str:

@@ -11,7 +11,7 @@ Design choices:
   - Chroma metadata must be scalar (str/int/float/bool) and non-null, so we
     sanitise each chunk's metadata before insertion.
 
-Run locally:  python embed_and_index.py chunks.jsonl
+Run locally:  python embed_and_index.py <chunks_path>
 Requires:     pip install chromadb sentence-transformers
 """
 
@@ -22,6 +22,8 @@ from pathlib import Path
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+from pre_process import CHUNKS_PATH
 
 # --- Configuration ---------------------------------------------------------
 MODEL_NAME = "intfloat/multilingual-e5-base"  # strong FR support, CPU-friendly
@@ -80,7 +82,7 @@ def clean_metadata(c: dict) -> dict:
     return out
 
 
-def main(chunks_path: str) -> None:
+def main(chunks_path: str | Path) -> None:
     chunks = load_chunks(chunks_path)
     print(f"Loaded {len(chunks)} chunks")
 
@@ -125,4 +127,4 @@ def main(chunks_path: str) -> None:
 if __name__ == "__main__":
     import sys
 
-    main(sys.argv[1] if len(sys.argv) > 1 else "chunks.jsonl")
+    main(sys.argv[1] if len(sys.argv) > 1 else CHUNKS_PATH)

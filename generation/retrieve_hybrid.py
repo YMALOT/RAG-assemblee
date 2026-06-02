@@ -28,15 +28,18 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 import unicodedata
 from dataclasses import replace
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from rank_bm25 import BM25Okapi
 
-from generation.retrieve import Hit, Retriever  # reuse dense retriever and Hit type
+from generation.retrieve import Hit, Retriever
+from pre_process import CHUNKS_PATH
 
-CHUNKS_PATH = "chunks.jsonl"
 DEFAULT_N_CANDIDATES = 20
 RRF_K = 60  # Cormack et al.'s well-known default
 
@@ -63,7 +66,7 @@ class HybridRetriever:
 
     def __init__(
         self,
-        chunks_path: str = CHUNKS_PATH,
+        chunks_path: str | Path = CHUNKS_PATH,
         n_candidates: int = DEFAULT_N_CANDIDATES,
         rrf_k: int = RRF_K,
     ) -> None:

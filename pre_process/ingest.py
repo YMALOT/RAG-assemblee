@@ -26,6 +26,7 @@ NAMESPACE = {"an": "http://schemas.assemblee-nationale.fr/referentiel"}
 # "Info Italiques" / "Signature droite" = procedural stage directions
 # (session open/close, amendment vote results, applause). Kept but flagged.
 PROCEDURAL_STYLES = {"Info Italiques", "Signature droite"}
+CORPUS_PATH = Path("../data/corpus.jsonl")
 
 
 @dataclass
@@ -190,4 +191,4 @@ if __name__ == "__main__":
 
     print(f"Building corpus from {len(paths)} session(s):")
     corpus = build_corpus(paths)
-    save_corpus(corpus, "corpus.jsonl")
+    save_corpus(corpus, CORPUS_PATH)

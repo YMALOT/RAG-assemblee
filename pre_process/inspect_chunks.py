@@ -23,7 +23,7 @@ import re
 import statistics
 from pathlib import Path
 
-CHUNKS_PATH = "chunks.jsonl"
+from .chunk import CHUNKS_PATH
 
 # Heuristic quality flags (not errors — just things worth a human glance).
 _GLUED = re.compile(r'[a-zà-öø-ÿ]{2}[.!?…][«"A-ZÀ-Þ]')  # sentence glued

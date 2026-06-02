@@ -23,11 +23,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-from eval.search_corpus import CHUNKS_PATH, load_chunks, search
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from generation.retrieve import Retriever
+from evaluation.search_corpus import load_chunks, search
+from generation import Retriever
+from pre_process import CHUNKS_PATH
+
 
 TYPES = [
     "factual",

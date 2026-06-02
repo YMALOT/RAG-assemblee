@@ -48,8 +48,7 @@ from dotenv import load_dotenv
 
 # Reuse the production generation pipeline and its prompts, just swap in
 # the reranked retriever as the retriever component.
-from generation.retrieve_reranked import RerankedRetriever
-from generation.generate import answer as rag_answer, BASE_URL, API_KEY
+from generation import RerankedRetriever, answer as rag_answer, BASE_URL, API_KEY
 
 QUESTIONS_PATH = "evaluation/questions.jsonl"
 RESULTS_PATH = "evaluation/generation_results.jsonl"
